@@ -1,0 +1,4 @@
+this directory has a symbolic link to usr/include which allows it to to be picked up by gcc automatically
+
+i made it with this command:
+sudo ln -s $HOME/include/stdx /usr/include/stdx
