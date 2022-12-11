@@ -6,6 +6,15 @@
 // this is for making it easier to use strcmp!
 #define strcmpx(s1,s2) strcmp(s1,s2) == 0
 
+char* strdupx(const char* src) {
+    char* dst = malloc(strlen(src) + 1);
+
+    if (dst == NULL) return NULL;
+
+    strcpy(dst, src);
+    return dst;
+}
+
 char* string_convert(int to_convert, char* type){
 	char* str;
 	asprintf(&str, type, to_convert);
@@ -106,10 +115,9 @@ int string_find(char* str, char* toFind){
     int tFlen = strlen(toFind);
     int found = 0;
 
-    if( slen >= tFlen )
-    {
-        for(int s=0, t=0; s<slen; s++)
-        {
+    if(slen >= tFlen) {  
+        int s, t = 0;
+        for(; s < slen; s++) {
             do{
 
                 if( str[s] == toFind[t] )
@@ -120,11 +128,12 @@ int string_find(char* str, char* toFind){
                 }
                 else { s -= found; found=0; t=0; }
 
-              }while(found);
+            } while(found);
         }
         return 0;
     }
-    else return 0;
+    else 
+        return 0;
 }
 
 int string_startswith(char* str, char* prefix){
