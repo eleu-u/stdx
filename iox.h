@@ -3,6 +3,8 @@
 #include <sys/stat.h>
 #include <stdio.h>
 
+/* creates a directory */
+/* return value of 1 indicates success and a return value of 0 indicates failure */
 int io_make_dir(char* location) {
 	#ifdef __unix__
 		return !mkdir(location, 0777);
@@ -11,9 +13,11 @@ int io_make_dir(char* location) {
 	#endif
 }
 
-int io_dir_exists(char*  location) {
+/* checks if a directory exists, returns a boolean */
+int io_dir_exists(char* location) {
 	struct stat st;
 	if (stat(location, &st) == 0) {
+		/* on linux the S_IFDIR macro isnt defined in the standard library so we just use its raw value when on unix-based platforms */
 		#ifdef __unix__
 			return (st.st_mode & 0040000 != 0);
 		#else
@@ -23,78 +27,101 @@ int io_dir_exists(char*  location) {
 	return 0;
 }
 
-int io_file_exists(char*  location) {
+/* checks if a file exists, returns a boolean */
+int io_file_exists(char* location) {
 	struct stat buffer;   
 	return (stat(location, &buffer) == 0); 
 }
 
-void io_write_file(char* location, char* to_write) {
-	FILE *fp;
+/* write a string to a file */
+/* return value of 1 indicates success and a return value of -1 indicates failure */
+int io_write_file(char* location, char* to_write) {
+	/* error checking */
+	FILE* file = fopen(location, "w");
+	if (file == NULL) {
+		return -1; /* indicates failure */
+	}
 
-	fp = fopen(location, "w");
-	fputs(to_write, fp);
-	fclose(fp);
+	/* writing */
+	fputs(to_write, file);
+
+	fclose(file);
+	return 1; /* indicates success */
 }
 
-void io_append_file(char* location, char* to_append) {
-	FILE *fp;
+/* appends a string to a file */
+/* return value of 1 indicates success and a return value of -1 indicates failure */
+int io_append_file(char* location, char* to_append) {
+	/* error check*/
+	FILE* file = fopen(location, "a");
+	if (file == NULL) {
+		return -1; /* indicates failure */
+	}
 
-	fp = fopen(location, "a");
-	fputs(to_append, fp);
-	fclose(fp);
+	/* append */
+	fputs(to_append, file);
+	
+	fclose(file);
+	return 1; /* indicates success*/
 }
 
-int io_charcount(char *filename) {
-	FILE* fp;
+/* return how many characters are in a file */
+/* a return value of -1 means there was an error reading the file */
+int io_charcount(char* filename) {
+	/* error checking*/
+	FILE* file = fopen(filename, "r");
+	if (file == NULL) {
+		return -1; /* indicates failure */
+	}
 
+	/* getting how many characters there are with just this simple for loop */
 	int count = 0;
 	char c;
 
-	fp = fopen(filename, "r");
-
-	for (c = getc(fp); c != EOF; c = getc(fp)) {
-		count = count + 1;
+	for (c = getc(file); c != EOF; c = getc(file)) {
+		count++;
 	}
 
-	fclose(fp);
+	/* close the file */
+	fclose(file);
 	return count;
 }
 
-char* io_read_file(char* filename) {
-	FILE* ptr;
-	char ch;
-	
-	int charcount = io_charcount(filename) + 1;
-	char* buff = malloc(sizeof(char) * charcount);
+/* writes the entire file to the char buffer provided in the second argument */
+/* return value of 1 indicates success and a return value of -1 indicates failure */
+int io_read_file(char* filename, char* buf) {
+	FILE* file = fopen(filename, "r");
 
-	ptr = fopen(filename, "r");
-
-	if (ptr == NULL) {
-		printf("file can't be opened\n");
+	if (file == NULL) {
+		return -1;
 	}
 
+	char c;
 	int i = 0;
-	while (ch != EOF) {
-		ch = fgetc(ptr);
-		buff[i] = ch;
+	while (c != EOF) {
+		c = fgetc(file);
+		buf[i] = c;
 		i++;
 	}
-	buff[i] = '\0';
+	buf[i] = '\0';
 
-	fclose(ptr);
-	return buff;
+	fclose(file);
+	return 1;
 }
 
+/* returns the amount of bytes a file takes up */
 long io_size_bytes(char* filename){
 	struct stat stat_buf;
 	int rc = stat(filename, &stat_buf);
 	return rc == 0 ? stat_buf.st_size : -1;
 }
 
-long io_size_kb(char*  filename){
+/* returns the amount of kilobytes a file takes up, uses io_size_bytes and some math to figure this out */
+long io_size_kb(char* filename){
 	return io_size_bytes(filename) / 1024;
 }
 
-long io_size_mb(char*  filename){
+/* returns the amount of megabytes a file takes up, uses io_size_bytes and some math to figure this out */
+long io_size_mb(char* filename){
 	return io_size_bytes(filename) / 1024 / 1024;
 }

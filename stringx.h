@@ -1,11 +1,14 @@
 #pragma once
 
 #include <string.h>
+#include <stdlib.h>
 #include <stdarg.h>
 
 // this is for making it easier to use strcmp!
-#define strcmpx(s1,s2) strcmp(s1,s2) == 0
+#define strcmpx(s1,s2) (strcmp(s1,s2) == 0)
 
+/* creates an exact copy of a string on the heap */
+/* (THIS FUNCTION ALLOCATES MEMORY AND THUS THE RETURN VALUE SHOULD BE FREED) */
 char* strdupx(const char* src) {
     char* dst = malloc(strlen(src) + 1);
 
@@ -15,43 +18,30 @@ char* strdupx(const char* src) {
     return dst;
 }
 
-char* string_convert(int to_convert, char* type){
+char* strcnvrt(int to_convert, char* type){
 	char* str;
 	asprintf(&str, type, to_convert);
 	return str;
 }
 
-char* string_remove_last(char* str) {
-	str[strlen(str)-1] = '\0';
-	return str;
-}
-
-char* string_format(char* fmt, ...){
-	char* buff = malloc(2048);
-	
-	va_list args;
-	va_start(args, fmt);
-	
-	vsprintf(buff, fmt, args);
-	
-	va_end(args);
-	
-	return buff;
-}
-
-char* string_trim(char *str) {
+/* gets rid of leading whitespace, input has to be mutable */
+char* strtrim(char *str) {
     char *ptr = NULL;
     while (*str == ' ') { 
 		str++;
 	}
+
     ptr = str + strlen(str) - 1;
     while (*ptr == ' ') { 
 		*ptr = '\0' ; ptr--; 
-	} 
+	}
+
     return str;  // return pointer to the modified start 
 }
 
-char* string_replace(char *orig, char *rep, char *with) {
+/* replaces a string with another string */
+/* (THIS FUNCTION ALLOCATES MEMORY AND THUS THE RETURN VALUE SHOULD BE FREED) */
+char* strrepl(char *orig, char *rep, char *with) {
     char *result; // the return string
     char *ins;    // the next insert point
     char *tmp;    // varies
@@ -101,7 +91,8 @@ char* string_replace(char *orig, char *rep, char *with) {
     return result;
 }
 
-char* string_char_replace(char* str, char find, char replace) {
+/* replaces every instance of a character with another character, input has to be mutable */
+char* strchrepl(char* str, char find, char replace) {
 	char *current_pos = strchr(str,find);
 	while (current_pos) {
 		*current_pos = replace;
@@ -110,7 +101,8 @@ char* string_char_replace(char* str, char find, char replace) {
 	return str;
 }
 
-int string_find(char* str, char* toFind){
+/* checks if a sting contains another string */
+int strfind(char* str, char* toFind){
     int slen = strlen(str);
     int tFlen = strlen(toFind);
     int found = 0;
@@ -136,7 +128,8 @@ int string_find(char* str, char* toFind){
         return 0;
 }
 
-int string_startswith(char* str, char* prefix){
+/* checks if a string starts with another string */
+int strprefix(char* str, char* prefix){
     while(*prefix) {
         if(*prefix++ != *str++) {
             return 0;
@@ -146,25 +139,30 @@ int string_startswith(char* str, char* prefix){
     return 1;
 }
 
-int string_endswith(char* str, char* suffix) {
+/* checks if a string ends with another string */
+int strsuffix(char* str, char* suffix) {
 	size_t str_len = strlen(str);
 	size_t suffix_len = strlen(suffix);
 
 	return (str_len >= suffix_len) && (!memcmp(str + str_len - suffix_len, suffix, suffix_len));
 }
 
-int string_quoted(char* str) {
-    return (string_startswith(str, "\"") && string_endswith(str, "\""));
+/* checks if a string starts and ends with a double quote */
+int strquot(char* str) {
+    return (strprefix(str, "\"") && strsuffix(str, "\""));
 }
 
-char** string_split(char str[], char* delim, int* array_size) {
+/* returns an array of strings split by a token */
+/* first argument has to be mutable */
+/* (THIS FUNCTION ALLOCATES MEMORY AND THUS THE RETURN VALUE SHOULD BE FREED) */
+char** strsplt(char str[], char* delim, int* array_size) {
 	char* token = strtok(str, delim);
-	char** array = malloc(sizeof(char*) * 1); // array size
+	char** array = NULL; // array size
 
 	int i;
 	for (i = 0; token != NULL; i++) {
+        array = realloc(array, sizeof(char*) * (i + 1)); // resizing array based on amount of elementss
 		array[i] = token;
-		array = realloc(array, sizeof(char*) * (i + 2)); // resizing array based on amount of elementss
 
 		token = strtok(NULL, delim); // next token
 	}
@@ -173,16 +171,24 @@ char** string_split(char str[], char* delim, int* array_size) {
 	return array;
 }
 
-char** string_split_quotes(char* str, char* delim, int* array_size, int add_quotes) {
+/* returns an array of strings split by a token except for when it is enclosed with "double quotes", useful for writing interpreters */
+/* first argument has to be mutable */
+/* the last argument (add_quotes) determines whether quotes should be added to strings that were enclosed with quotes, this will however use malloc so make sure you dont forget to free the quoted strings */ 
+/* if that doesnt make sense just pass false into it */
+/* (THIS FUNCTION ALLOCATES MEMORY AND THUS THE RETURN VALUE SHOULD BE FREED) */
+char** strspltq(char* str, char* delim, int* array_size, int add_quotes) {
 	int quotstr = (*str == '\"'); // boolean
 	char* currquot = strtok(str, "\"");
 	char* next = NULL;
 
-	char** array = malloc(sizeof(char*) * 1); // array size
+	char** array = NULL;
 
 	int i = 0;
 	while (currquot != NULL) {
 		if (quotstr) { // if surrounded in quotes
+            // array resizing
+            array = realloc(array, sizeof(char*) * (i + 1));
+
             if (add_quotes) { // if we should add quotes to the final string
                 char* buf;
                 asprintf(&buf, "\"%s\"", currquot); // this calls malloc
@@ -193,8 +199,6 @@ char** string_split_quotes(char* str, char* delim, int* array_size, int add_quot
                 array[i] = currquot;
             }
 
-            // resizing return array
-			array = realloc(array, sizeof(char*) * (i + 2));
 			i++;
 			quotstr = 0; // false
 		}
@@ -203,10 +207,10 @@ char** string_split_quotes(char* str, char* delim, int* array_size, int add_quot
 
 			char* currword = strtok(currquot, delim);
 			while (currword) {
+                // array resizing
+                array = realloc(array, sizeof(char*) * (i + 1));
 				array[i] = currword;
 
-                // array resizing
-				array = realloc(array, sizeof(char*) * (i + 2));
 				i++;
 				currword = strtok(NULL, delim);
 			}
