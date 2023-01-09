@@ -4,8 +4,11 @@
 #include <stdlib.h>
 #include <stdarg.h>
 
-// this is for making it easier to use strcmp!
-#define strcmpx(s1,s2) (strcmp(s1,s2) == 0)
+/* this is for making it easier to use strcmp! */
+#define strcmpx(s1, s2) (strcmp(s1,s2) == 0)
+
+/* this is for making it easier to use strstr to check if a substring exists in a string ! */
+#define strfind(needle, haystack) (strstr(needle, haystack) != NULL)
 
 /* creates an exact copy of a string on the heap */
 /* (THIS FUNCTION ALLOCATES MEMORY AND THUS THE RETURN VALUE SHOULD BE FREED) */
@@ -92,40 +95,12 @@ char* strrepl(char *orig, char *rep, char *with) {
 }
 
 /* replaces every instance of a character with another character, input has to be mutable */
-char* strchrepl(char* str, char find, char replace) {
+void strchrepl(char* str, char find, char replace) {
 	char *current_pos = strchr(str,find);
 	while (current_pos) {
 		*current_pos = replace;
 		current_pos = strchr(current_pos,find);
 	}
-	return str;
-}
-
-/* checks if a sting contains another string */
-int strfind(char* str, char* toFind){
-    int slen = strlen(str);
-    int tFlen = strlen(toFind);
-    int found = 0;
-
-    if(slen >= tFlen) {  
-        int s, t = 0;
-        for(; s < slen; s++) {
-            do{
-
-                if( str[s] == toFind[t] )
-                {
-                    if( ++found == tFlen ) return 1;
-                    s++;
-                    t++;
-                }
-                else { s -= found; found=0; t=0; }
-
-            } while(found);
-        }
-        return 0;
-    }
-    else 
-        return 0;
 }
 
 /* checks if a string starts with another string */
