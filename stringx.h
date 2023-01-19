@@ -13,7 +13,7 @@
 /* creates an exact copy of a string on the heap */
 /* (THIS FUNCTION ALLOCATES MEMORY AND THUS THE RETURN VALUE SHOULD BE FREED) */
 char* strdupx(const char* src) {
-    char* dst = malloc(strlen(src) + 1);
+    char* dst = (char*)malloc(strlen(src) + 1);
 
     if (dst == NULL) return NULL;
 
@@ -72,7 +72,7 @@ char* strrepl(char *orig, char *rep, char *with) {
         ins = tmp + len_rep;
     }
 
-    tmp = result = malloc(strlen(orig) + (len_with - len_rep) * count + 1);
+    tmp = result = (char*)malloc(strlen(orig) + (len_with - len_rep) * count + 1);
 
     if (!result) {
         return NULL;
@@ -136,7 +136,7 @@ char** strsplt(char str[], char* delim, int* array_size) {
 
 	int i;
 	for (i = 0; token != NULL; i++) {
-        array = realloc(array, sizeof(char*) * (i + 1)); // resizing array based on amount of elementss
+        array = (char**)realloc(array, sizeof(char*) * (i + 1)); // resizing array based on amount of elementss
 		array[i] = token;
 
 		token = strtok(NULL, delim); // next token
@@ -162,7 +162,7 @@ char** strspltq(char* str, char* delim, int* array_size, int add_quotes) {
 	while (currquot != NULL) {
 		if (quotstr) { // if surrounded in quotes
             // array resizing
-            array = realloc(array, sizeof(char*) * (i + 1));
+            array = (char**)realloc(array, sizeof(char*) * (i + 1));
 
             if (add_quotes) { // if we should add quotes to the final string
                 char* buf;
@@ -183,7 +183,7 @@ char** strspltq(char* str, char* delim, int* array_size, int add_quotes) {
 			char* currword = strtok(currquot, delim);
 			while (currword) {
                 // array resizing
-                array = realloc(array, sizeof(char*) * (i + 1));
+                array = (char**)realloc(array, sizeof(char*) * (i + 1));
 				array[i] = currword;
 
 				i++;
