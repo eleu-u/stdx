@@ -1,4 +1,5 @@
-#pragma once
+#ifndef IOX_H
+#define IOX_H
 
 #include <sys/stat.h>
 #include <stdio.h>
@@ -97,11 +98,10 @@ int io_read_file(char* filename, char* buf) {
 	}
 
 	char c;
-	int i = 0;
-	while (c != EOF) {
+	int i;
+	for (i = 0; c != EOF; i++) {
 		c = fgetc(file);
 		buf[i] = c;
-		i++;
 	}
 	buf[i] = '\0';
 
@@ -125,3 +125,5 @@ long io_size_kb(char* filename){
 long io_size_mb(char* filename){
 	return io_size_bytes(filename) / 1024 / 1024;
 }
+
+#endif /* IOX_H */

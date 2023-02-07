@@ -1,4 +1,5 @@
-#pragma once
+#ifndef JSONX_H
+#define JSONX_H
 
 #include <string.h>
 #include <ctype.h>
@@ -20,7 +21,7 @@ TODO:
     buf; \
 })
 
-int json_get(char* json, char* key, char* buf) {
+int json_get(char* json, const char* key, char* buf) {
     /* creates a new string that starts where the key is */
     char* walk_start = strstr(json, key);
     if (walk_start == NULL) {
@@ -48,7 +49,7 @@ int json_get(char* json, char* key, char* buf) {
 
         /* if this is a string and we run into an ending quote " */
         if (walk_start[i] == '\"') {
-            /* if the the last character wasn't a \, we stop writing to the buffer */
+            /* if the character before wasn't a \, we stop writing to the buffer */
             /* this is to allow \" escape sequences */
             if ((walk_start[i-1] != '\\')) {
                 break;
@@ -73,3 +74,5 @@ int json_get(char* json, char* key, char* buf) {
 
     return 1;
 }
+
+#endif /* JSONX_H */

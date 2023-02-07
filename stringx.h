@@ -1,4 +1,5 @@
-#pragma once
+#ifndef STRINGX_H
+#define STRINGX_H
 
 #include <string.h>
 #include <stdlib.h>
@@ -21,77 +22,19 @@ char* strdupx(const char* src) {
     return dst;
 }
 
-char* strcnvrt(int to_convert, char* type){
-	char* str;
-	asprintf(&str, type, to_convert);
-	return str;
-}
-
 /* gets rid of leading whitespace, input has to be mutable */
 char* strtrim(char *str) {
-    char *ptr = NULL;
     while (*str == ' ') { 
 		str++;
 	}
 
-    ptr = str + strlen(str) - 1;
+    char* ptr = str + strlen(str) - 1;
     while (*ptr == ' ') { 
-		*ptr = '\0' ; ptr--; 
+		*ptr = '\0'; 
+		ptr--; 
 	}
 
     return str;  // return pointer to the modified start 
-}
-
-/* replaces a string with another string */
-/* (THIS FUNCTION ALLOCATES MEMORY AND THUS THE RETURN VALUE SHOULD BE FREED) */
-char* strrepl(char *orig, char *rep, char *with) {
-    char *result; // the return string
-    char *ins;    // the next insert point
-    char *tmp;    // varies
-    int len_rep;  // length of rep (the string to remove)
-    int len_with; // length of with (the string to replace rep with)
-    int len_front; // distance between rep and end of last rep
-    int count;    // number of replacements
-
-    // sanity checks and initialization
-    if (!orig || !rep) {
-        return NULL;
-	}
-    len_rep = strlen(rep);
-    if (len_rep == 0) {
-        return NULL;
-	}
-    if (!with) {
-        with = "";
-	}
-    len_with = strlen(with);
-
-    // count the number of replacements needed
-    ins = orig;
-    for (count = 0; tmp = strstr(ins, rep); ++count) {
-        ins = tmp + len_rep;
-    }
-
-    tmp = result = (char*)malloc(strlen(orig) + (len_with - len_rep) * count + 1);
-
-    if (!result) {
-        return NULL;
-	}
-
-    // first time through the loop, all the variable are set correctly
-    // from here on,
-    //    tmp points to the end of the result string
-    //    ins points to the next occurrence of rep in orig
-    //    orig points to the remainder of orig after "end of rep"
-    while (count--) {
-        ins = strstr(orig, rep);
-        len_front = ins - orig;
-        tmp = strncpy(tmp, orig, len_front) + len_front;
-        tmp = strcpy(tmp, with) + len_with;
-        orig += len_front + len_rep; // move to next "end of rep"
-    }
-    strcpy(tmp, orig);
-    return result;
 }
 
 /* replaces every instance of a character with another character, input has to be mutable */
@@ -130,7 +73,7 @@ int strquot(char* str) {
 /* returns an array of strings split by a token */
 /* first argument has to be mutable */
 /* (THIS FUNCTION ALLOCATES MEMORY AND THUS THE RETURN VALUE SHOULD BE FREED) */
-char** strsplt(char str[], char* delim, int* array_size) {
+char** strsplt(char str[], const char* delim, int* array_size) {
 	char* token = strtok(str, delim);
 	char** array = NULL; // array size
 
@@ -151,7 +94,7 @@ char** strsplt(char str[], char* delim, int* array_size) {
 /* the last argument (add_quotes) determines whether quotes should be added to strings that were enclosed with quotes, this will however use malloc so make sure you dont forget to free the quoted strings */ 
 /* if that doesnt make sense just pass false into it */
 /* (THIS FUNCTION ALLOCATES MEMORY AND THUS THE RETURN VALUE SHOULD BE FREED) */
-char** strspltq(char* str, char* delim, int* array_size, int add_quotes) {
+char** strspltq(char* str, const char* delim, int* array_size, int add_quotes) {
 	int quotstr = (*str == '\"'); // boolean
 	char* currquot = strtok(str, "\"");
 	char* next = NULL;
@@ -199,3 +142,5 @@ char** strspltq(char* str, char* delim, int* array_size, int add_quotes) {
 	if (array_size != NULL) *array_size = i;
 	return array;
 }
+
+#endif /* STRINGX_H */
